@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "radius-interact",
+	"version": "${version}",
+	"name": "Radius Interact",
+	"description": "Break visible blocks without effort because ur a lazy a-",
+	"authors": [
+		"Fluffical"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/radius-interact/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"fluffical.radiusinteract.RadiusInteract"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

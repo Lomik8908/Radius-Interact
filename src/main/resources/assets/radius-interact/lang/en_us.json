@@ -1,0 +1,37 @@
+{
+    "key.category.radius-interact.keys": "Radius Interact",
+    "key.radius-interact.config": "Open Config",
+
+    "radius-interact.enabled.false": "Radius Interaction: Disabled",
+    "radius-interact.enabled.true": "Radius Interaction: Enabled",
+    "radius-interact.radiusmode.false": "Radius Mode: Nearest",
+    "radius-interact.radiusmode.true": "Radius Mode: Farthest",
+    "radius-interact.mode.false": "Mode: Break",
+    "radius-interact.mode.true": "Mode: Interact",
+
+    "radius-interact.screen.config": "Radius Interact Config",
+    "radius-interact.screen.targets": "Manage Targets",
+    "radius-interact.screen.targetadd": "Add Target",
+
+    "radius-interact.clear.msg": "Are you sure you want to clear all %s targets?",
+    "radius-interact.remove.msg": "Are you sure you want to remove %s?",
+    
+    "radius-interact.targets": "Manage Targets",
+    "radius-interact.target.clear": "Clear Targets",
+    "radius-interact.target.add": "Add Target",
+    "radius-interact.target.remove": "Remove Target",
+    
+    "radius-interact.add": "Add",
+    "radius-interact.blockid": "Block ID",
+
+    "radius-interact.range.tooltip": "Max Reach §6(double)\n§7Ignored if above maximum block reach.\n§2-1 = No Limit",
+    "radius-interact.range.narrator": "Set Maximum Reach",
+
+    "radius-interact.targets.clear": "Cleared target list.",
+    "radius-interact.targets.list": "Targetted blocks: %s",
+    "radius-interact.targets.listempty": "No blocks are targetted.",
+    "radius-interact.targets.add": "Added %s to targets.",
+    "radius-interact.targets.added": "%s is already targetted!",
+    "radius-interact.targets.remove": "Removed %s from targets.",
+    "radius-interact.targets.isnt": "%s is not targetted!"
+}
