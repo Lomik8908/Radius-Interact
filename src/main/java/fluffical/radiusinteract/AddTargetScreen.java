@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 public class AddTargetScreen extends Screen {
@@ -20,23 +21,57 @@ public class AddTargetScreen extends Screen {
     private Button addButton;
     private Button cancelButton;
     private EditBox editBox;
+
+    protected String getSuggestion(String text) {
+        if (text.length() <= 0)
+            return BuiltInRegistries.BLOCK.getKey(BuiltInRegistries.BLOCK.getRandom(RandomSource.create()).map(Holder::value).orElse(Blocks.STONE)).toString();
+        
+        String suggested = "";
+        for (Block block : BuiltInRegistries.BLOCK) {
+            String key = BuiltInRegistries.BLOCK.getKey(block).toString();
+            if (key.startsWith(text))
+                suggested = key;
+        }
+        if (text.length() >= suggested.length())
+            return "";
+        return suggested.substring(text.length());
+    }
+
     @Override
     protected void init() {
-        editBox = new EditBox(font, (width - 300) / 2, (height - 20) / 2 - 8, 300, 20, RadiusInteract.getTranslation("blockid"));
+        editBox = new EditBox(font, (width - 300) / 2, (height - 20) / 2, 300, 20, RadiusInteract.getTranslation("blockid")) {
+            @Override
+            public void insertText(String input) {
+                super.insertText(input.replaceAll("[^a-z0-9/:._-]", ""));
+            }
+        };
         editBox.setMaxLength(256);
-        editBox.setSuggestion(BuiltInRegistries.BLOCK.getKey(BuiltInRegistries.BLOCK.getRandom(RandomSource.create()).map(Holder::value).orElse(Blocks.STONE)).toString());
+        editBox.setSuggestion(getSuggestion(editBox.getValue()));
+        editBox.setTextColor(0xFFFF4040);
+
         addButton = Button.builder(RadiusInteract.getTranslation("add"), btn -> {
             Identifier id = Identifier.parse(editBox.getValue());
             if (BuiltInRegistries.BLOCK.containsKey(id)) {
                 RadiusInteract.config.targets.add(id.toString());
             }
             minecraft.setScreenAndShow(parent);
-        }).bounds(width / 2 - 150, height / 2 + 8, 140, 20).build();
+        }).bounds(width / 2 - 150, (height - 20) / 2 + 28, 140, 20).build();
+        addButton.active = false;
+
         cancelButton = Button.builder(Component.translatable("gui.cancel"), btn -> {
             minecraft.setScreenAndShow(parent);
-        }).bounds(width / 2 + 10, height / 2 + 8, 140, 20).build();
+        }).bounds(width / 2 + 10, (height - 20) / 2 + 28, 140, 20).build();
+
         editBox.setResponder(string -> {
-            
+            if (string.length() > 0 && BuiltInRegistries.BLOCK.containsKey(Identifier.tryParse(string))) {
+                editBox.setTextColor(0xFFFFFFFF);
+                editBox.setSuggestion(null);
+                addButton.active = true;
+            } else {
+                editBox.setTextColor(0xFFFF4040);
+                editBox.setSuggestion(getSuggestion(string));
+                addButton.active = false;
+            }
         });
         addRenderableWidget(editBox);
         addRenderableWidget(addButton);

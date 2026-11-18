@@ -22,6 +22,7 @@ public class TargetScreen extends Screen {
     @Override
     protected void init() {
         blockList = new TargetListWidget(minecraft, width, height - 60, 20, 20);
+
         clearList = Button.builder(RadiusInteract.getTranslation("target.clear"), btn -> {
             minecraft.setScreenAndShow(new ConfirmScreen(bool -> {
                 if (bool) {
@@ -31,9 +32,11 @@ public class TargetScreen extends Screen {
                 minecraft.setScreenAndShow(this);
             }, RadiusInteract.getTranslation("targets"), RadiusInteract.getTranslation("clear.msg", RadiusInteract.config.targets.size())));
         }).bounds((width - 96) / 2 - 100, height - 30, 96, 20).build();
+        
         addBlock = Button.builder(RadiusInteract.getTranslation("target.add"), btn -> {
             minecraft.setScreenAndShow(new AddTargetScreen(this));
         }).bounds((width - 96) / 2, height - 30, 96, 20).build();
+
         removeBlock = Button.builder(RadiusInteract.getTranslation("target.remove"), btn -> {
             TargetEntry entry = blockList.getSelected();
             if (entry != null)
@@ -47,6 +50,7 @@ public class TargetScreen extends Screen {
                     minecraft.setScreenAndShow(this);
                 }, RadiusInteract.getTranslation("targets"), RadiusInteract.getTranslation("remove.msg", entry.id)));
         }).bounds((width - 96) / 2 + 100, height - 30, 96, 20).build();
+        
         removeBlock.active = false;
         clearList.active = RadiusInteract.config.targets.size() > 0;
         

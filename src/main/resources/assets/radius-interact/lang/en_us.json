@@ -4,14 +4,17 @@
 
     "radius-interact.enabled.false": "Radius Interaction: Disabled",
     "radius-interact.enabled.true": "Radius Interaction: Enabled",
-    "radius-interact.radiusmode.false": "Radius Mode: Nearest",
-    "radius-interact.radiusmode.true": "Radius Mode: Farthest",
+
+    "radius-interact.radiusmode.false": "Start From: Nearest",
+    "radius-interact.radiusmode.true": "Start From: Farthest",
+    "radius-interact.radiusmode.tooltip": "Whenever the interaction must start from the nearest or farthest block.",
+
     "radius-interact.mode.false": "Mode: Break",
     "radius-interact.mode.true": "Mode: Interact",
 
     "radius-interact.screen.config": "Radius Interact Config",
     "radius-interact.screen.targets": "Manage Targets",
-    "radius-interact.screen.targetadd": "Add Target",
+    "radius-interact.screen.addtarget": "Add Target",
 
     "radius-interact.clear.msg": "Are you sure you want to clear all %s targets?",
     "radius-interact.remove.msg": "Are you sure you want to remove %s?",
@@ -24,14 +27,25 @@
     "radius-interact.add": "Add",
     "radius-interact.blockid": "Block ID",
 
-    "radius-interact.range.tooltip": "Max Reach §6(double)\n§7Ignored if above maximum block reach.\n§2-1 = No Limit",
-    "radius-interact.range.narrator": "Set Maximum Reach",
+    "radius-interact.range.tooltip": "Max Reach §6(double)\n§7Ignored if above maximum block reach.",
+    "radius-interact.range": "Max Range: %s",
+    "radius-interact.unlim": "Unlimited",
 
-    "radius-interact.targets.clear": "Cleared target list.",
-    "radius-interact.targets.list": "Targetted blocks: %s",
-    "radius-interact.targets.listempty": "No blocks are targetted.",
-    "radius-interact.targets.add": "Added %s to targets.",
-    "radius-interact.targets.added": "%s is already targetted!",
-    "radius-interact.targets.remove": "Removed %s from targets.",
-    "radius-interact.targets.isnt": "%s is not targetted!"
+    "radius-interact.exclusionMode.0": "Exclude: None",
+    "radius-interact.exclusionMode.1": "Exclude: Block Under Player",
+    "radius-interact.exclusionMode.2": "Exclude: Anything bellow Feet",
+    "radius-interact.exclusionMode.3": "Exclude: Anything above Feet",
+
+    "radius-interact.side.0": "From Side: All",
+    "radius-interact.side.1": "From Side: Up",
+    "radius-interact.side.2": "From Side: Down",
+    "radius-interact.side.3": "From Side: North",
+    "radius-interact.side.4": "From Side: West",
+    "radius-interact.side.5": "From Side: South",
+    "radius-interact.side.6": "From Side: East",
+    "radius-interact.side.tooltip": "From which side the block must be interacted from.",
+
+    "radius-interact.sideair.false": "Side Must Have Air: No",
+    "radius-interact.sideair.true": "Side Must Have Air: Yes",
+    "radius-interact.sideair.tooltip": "Whenever the side must be exposed to air to interact.\n§7Note: Player still needs clear line of sight of the side."
 }

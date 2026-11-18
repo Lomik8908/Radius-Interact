@@ -1,16 +1,12 @@
 package fluffical.radiusinteract;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.commands.arguments.blocks.BlockInput;
-import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,15 +14,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +38,10 @@ public class RadiusInteract implements ModInitializer {
 
 	public static boolean isBreaking = false;
 	public boolean canBreak = false;
-	public BlockPos targetBlockPos;
-	public Direction targetDirection;
-	public BlockHitResult targetHitResult;
+	public TargetBlock target = new TargetBlock();
+	// public BlockPos targetBlockPos;
+	// public Direction targetDirection;
+	// public BlockHitResult targetHitResult;
 
 	public KeyMapping registerKeyEvent(KeyMapping key, EndTick endTick) {
 		KeyMapping mapping = KeyMappingHelper.registerKeyMapping(key);
@@ -56,30 +54,91 @@ public class RadiusInteract implements ModInitializer {
 		return mapping;
 	}
 
-	public void targetInRange(double range, Vec3 pos3, Level level, Block block) {
-		targetBlockPos = null;
-		targetDirection = null;
-		targetHitResult = null;
+	public boolean isExcluded(BlockPos pos, Player player) {
+		switch (config.exclusionMode) {
+			case 1:
+				return player.blockPosition().below().equals(pos);
+			case 2:
+				return pos.getY() < player.getY();
+			case 3:
+				return pos.getY() >= player.getY();
+		}
+		return false;
+	}
+
+	public Direction getDirection() {
+		switch (config.sideOnly) {
+			case 1:
+				return Direction.UP;
+			case 2:
+				return Direction.DOWN;
+			case 3:
+				return Direction.NORTH;
+			case 4:
+				return Direction.WEST;
+			case 5:
+				return Direction.SOUTH;
+			case 6:
+				return Direction.EAST;
+		}
+		return null; //Direction.getApproximateNearest(pos);
+	}
+	static final double digInside = 1d / 64d;
+	public Vec3 getClosestPoint(VoxelShape shape, BlockPos pos, Vec3 eyePos) {
+		Vec3 closestPoint = null;
+		Vec3 relPos = eyePos.subtract(pos.getX(), pos.getY(), pos.getZ());
+		for (AABB box : shape.toAabbs()) {
+			Vec3 point = new Vec3(
+				Math.clamp(relPos.x, box.minX + digInside, box.maxX - digInside),
+				Math.clamp(relPos.y, box.minY + digInside, box.maxY - digInside),
+				Math.clamp(relPos.z, box.minZ + digInside, box.maxZ - digInside)
+			);
+			if (closestPoint == null || relPos.distanceToSqr(point) < relPos.distanceToSqr(closestPoint))
+				closestPoint = point;
+		}
+		return closestPoint == null ? null : closestPoint.add(pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	public void targetInRange(double range, Vec3 eyePos, Level level, Player player) {
+		target.CanInteract = false;
 		int radius = (int)Math.ceil(range);
-		BlockPos center = BlockPos.containing(pos3);
+		BlockPos center = BlockPos.containing(eyePos);
 		double closestDist = config.farthestFirst ? 0 : range * range;
 		for (BlockPos pos : BlockPos.betweenClosed(
 			center.offset(-radius, -radius, -radius),
 			center.offset(radius, radius, radius)
 		)) {
-			Vec3 blockCenter = Vec3.atCenterOf(pos);
-			double distSqr = pos3.distanceToSqr(blockCenter);
+			if (isExcluded(pos, player) || !level.isInValidBounds(pos)) continue;
+
+			BlockState state = level.getBlockState(pos);
+			if (state.isAir()) continue;
+			
+			String id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+			if (!config.targets.contains(id)) continue;
+
+			VoxelShape shape = state.getShape(level, pos);
+			if (shape.isEmpty()) return;
+			Vec3 blockCenter = getClosestPoint(shape, pos, eyePos);//shape.bounds().getCenter().add(pos.getX(), pos.getY(), pos.getZ());
+			// Direction direction = getDirection(eyePos.subtract(blockCenter));
+
+			// if (!level.getBlockState(pos.relative(direction)).isAir()) continue;
+
+			// Vec3 blockDirPos = blockCenter.relative(direction, 0.49);
+			double distSqr = eyePos.distanceToSqr(blockCenter);
+
 			if (distSqr <= range * range && config.farthestFirst ? (distSqr >= closestDist) : (distSqr <= closestDist)) {
-				String id = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock()).toString();
-				if (!config.targets.contains(id)) continue;
-				Vec3 diff = pos3.subtract(blockCenter);
-				Direction dir = Direction.getApproximateNearest(diff);
-				BlockHitResult result = level.clip(new ClipContext(pos3, blockCenter.relative(dir, 0.49), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
-				if (result.getType() == HitResult.Type.BLOCK && pos.equals(result.getBlockPos())) {
+				BlockHitResult result = level.clip(new ClipContext(eyePos, blockCenter, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+				// if (result.getType() != HitResult.Type.BLOCK)
+				// 	result = level.clip(new ClipContext(eyePos, blockCenter, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+				Direction gDirection = getDirection();
+				if (config.sideAir && !level.getBlockState(pos.relative(gDirection == null ? result.getDirection() : gDirection)).isAir()) continue;
+				if (result.getType() == HitResult.Type.BLOCK && pos.equals(result.getBlockPos()) && (gDirection == null || result.getDirection() == gDirection)) {
 					closestDist = distSqr;
-					targetBlockPos = pos.immutable();
-					targetDirection = dir;
-					targetHitResult = result;
+					target.BlockPosition = pos.immutable();
+					target.Direction = result.getDirection();
+					target.HitResult = result;
+					target.ClosestPoint = blockCenter;
+					target.CanInteract = true;
 				}
 			}
 		}
@@ -89,7 +148,7 @@ public class RadiusInteract implements ModInitializer {
 	public void onInitialize() {
 		config = ConfigManager.loadConfig();
 		var category = KeyMapping.Category.register(id("keys"));
-		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYBOARD, InputConstants.KEY_APOSTROPHE, category), client -> {
+		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYBOARD, InputConstants.KEY_H, category), client -> {
 			if (client.gui.screen() instanceof ConfigScreen)
 				client.gui.setScreen(null);
 			else
@@ -101,69 +160,27 @@ public class RadiusInteract implements ModInitializer {
 			client.player.sendOverlayMessage(getTranslation("enabled."+String.valueOf(isBreaking)));
 		});
 
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-			dispatcher.register(ClientCommands.literal(MOD_ID)
-				.then(ClientCommands.literal("clearTargets").executes(context -> {
-					config.targets.clear();
-					context.getSource().sendFeedback(getTranslation("targets.clear"));
-					return 1;
-				}))
-				.then(ClientCommands.literal("listTargets").executes(context -> {
-					if (config.targets.size() > 0)
-						context.getSource().sendFeedback(getTranslation("targets.list", String.join(", ", config.targets)));
-					else
-						context.getSource().sendFeedback(getTranslation("targets.listempty"));
-					return 1;
-				}))
-				.then(ClientCommands.literal("addTarget").then(ClientCommands.argument("block", BlockStateArgument.block(registryAccess)).executes(context -> {
-					BlockInput value = context.getArgument("block", BlockInput.class);
-					String id = BuiltInRegistries.BLOCK.getKey(value.getState().getBlock()).toString();
-					if (!config.targets.contains(id)) {
-						config.targets.add(id);
-						context.getSource().sendFeedback(getTranslation("targets.add", id));
-					} else {
-						context.getSource().sendError(getTranslation("targets.added", id));
-					}
-					return 1;
-				})))
-				.then(ClientCommands.literal("removeTarget").then(ClientCommands.argument("block", BlockStateArgument.block(registryAccess)).executes(context -> {
-					BlockInput value = context.getArgument("block", BlockInput.class);
-					String id = BuiltInRegistries.BLOCK.getKey(value.getState().getBlock()).toString();
-					if (config.targets.contains(id)) {
-						config.targets.remove(id);
-						context.getSource().sendFeedback(getTranslation("targets.removed", id));
-					} else {
-						context.getSource().sendError(getTranslation("targets.isnt", id));
-					}
-					return 1;
-				}))).executes(context -> {
-					context.getSource().sendError(getTranslation("config", config.useBlock, config.farthestFirst, config.maxRange));
-					return 1;
-				})
-			);
-		});
-
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player != null && client.level != null && !client.isPaused() && isBreaking) {
 				Vec3 eyePos = client.player.getEyePosition();
 				double reach = client.player.blockInteractionRange();
 				if (config.maxRange > 0)
 					reach = Math.min(reach, config.maxRange);
-				if (!config.useBlock && targetBlockPos != null && !client.level.getBlockState(targetBlockPos).isAir() && eyePos.distanceToSqr(Vec3.atCenterOf(targetBlockPos)) <= reach * reach) {
+				if (!config.useBlock && target.CanInteract && !client.level.getBlockState(target.BlockPosition).isAir() && (!config.sideAir || client.level.getBlockState(target.BlockPosition.relative(target.Direction)).isAir()) && eyePos.distanceToSqr(target.ClosestPoint) <= reach * reach) {
 					if (canBreak) {
-						client.gameMode.continueDestroyBlock(targetBlockPos, targetDirection);
+						client.gameMode.continueDestroyBlock(target.BlockPosition, target.Direction);
 						client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
 					}
 				}
 				else {
-					targetInRange(reach, eyePos, client.level, Blocks.DIRT);
-					if (targetBlockPos != null && targetDirection != null) {
+					targetInRange(reach, eyePos, client.level, client.player);
+					if (target.CanInteract) {
 						if (config.useBlock) {
-							InteractionResult result = client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, targetHitResult);
-							if (result.consumesAction())
+							InteractionResult result = client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, target.HitResult);
+							if (result.consumesAction()) 
 								client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
 						} else {
-							canBreak = client.gameMode.startDestroyBlock(targetBlockPos, targetDirection);
+							canBreak = client.gameMode.startDestroyBlock(target.BlockPosition, target.Direction);
 							if (canBreak)
 								client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
 						}
