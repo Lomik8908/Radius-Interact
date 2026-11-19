@@ -67,7 +67,7 @@ public class TargetScreen extends Screen {
     public void updateList() {
         for (String blockid : RadiusInteract.config.targets) {
             var block = BuiltInRegistries.BLOCK.get(Identifier.parse(blockid));
-            if (block != null) {
+            if (!block.isEmpty()) {
                 TargetEntry entry = blockList.addEntry(blockid, blockid);
                 entry.drawnStack = new ItemStack(block.get().value());
             }

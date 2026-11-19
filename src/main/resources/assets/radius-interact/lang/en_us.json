@@ -1,6 +1,7 @@
 {
     "key.category.radius-interact.keys": "Radius Interact",
     "key.radius-interact.config": "Open Config",
+    "key.radius-interact.toggle": "Toggle Mod",
 
     "radius-interact.enabled.false": "Radius Interaction: Disabled",
     "radius-interact.enabled.true": "Radius Interaction: Enabled",
