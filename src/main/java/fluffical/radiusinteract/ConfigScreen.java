@@ -1,6 +1,6 @@
 package fluffical.radiusinteract;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -29,7 +29,7 @@ public class ConfigScreen extends Screen {
         }).bounds((width - 150 - 160) / 2, (height - 20) / 2 - 24 * 2, 150, 20).build();
         
         targetsButton = Button.builder(RadiusInteract.getTranslation("targets"), btn -> {
-            minecraft.setScreenAndShow(new TargetScreen());
+            minecraft.setScreen(new TargetScreen());
         }).bounds((width - 150 + 160) / 2, (height - 20) / 2 - 24 * 2, 150, 20).build();
         
 
@@ -99,8 +99,8 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        super.extractRenderState(graphics, mouseX, mouseY, a);
-        graphics.text(font, title, (width - font.width(title)) / 2, 16, 0xFFFFFFFF, true);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
+        super.render(graphics, mouseX, mouseY, a);
+        graphics.drawString(font, title, (width - font.width(title)) / 2, 16, 0xFFFFFFFF, true);
     }
 }

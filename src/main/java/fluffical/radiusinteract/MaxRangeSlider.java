@@ -18,8 +18,8 @@ public class MaxRangeSlider extends AbstractSliderButton {
     @Override
     protected void updateMessage() {
         if (value == 0)
-            message = RadiusInteract.getTranslation("range", RadiusInteract.getTranslation("unlim"));
+            setMessage(RadiusInteract.getTranslation("range", RadiusInteract.getTranslation("unlim")));
         else
-            message = RadiusInteract.getTranslation("range", value * maxValue);
+            setMessage(RadiusInteract.getTranslation("range", value * maxValue));
     }
 }

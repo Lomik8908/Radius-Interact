@@ -2,10 +2,8 @@ package fluffical.radiusinteract;
 
 import java.util.function.Consumer;
 
-import org.jspecify.annotations.Nullable;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -20,17 +18,18 @@ public class TargetListWidget extends ObjectSelectionList<TargetListWidget.Targe
         addEntry(entry);
         return entry;
     }
-    public void removeEntry(TargetEntry targetEntry) {
-        super.removeEntry(targetEntry);
+    @Override
+    public boolean removeEntry(TargetEntry entry) {
+        return super.removeEntry(entry);
     }
     public void clearEntries() {
         super.clearEntries();
     }
     @Override
-    public void setSelected(@Nullable TargetEntry selected) {
-        super.setSelected(selected);
+    public void setSelected(TargetEntry entry) {
+        super.setSelected(entry);
         if (onSelected != null)
-            onSelected.accept(selected);
+            onSelected.accept(entry);
     }
     public class TargetEntry extends ObjectSelectionList.Entry<TargetEntry> {
         public String text;
@@ -45,13 +44,13 @@ public class TargetListWidget extends ObjectSelectionList<TargetListWidget.Targe
             return Component.literal(text);
         }
         @Override
-        public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            int x = getX() + 6;
+        public void render(GuiGraphics graphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            int xr = x;
             if (drawnStack != null) {
-                graphics.fakeItem(drawnStack, getX() + 2, getY() + 2);
-                x += 14;
+                graphics.renderFakeItem(drawnStack, xr, y);
+                xr += 18;
             }
-            graphics.text(minecraft.font, text, x, getY() + 6, 0xFFFFFFFF);
+            graphics.drawString(minecraft.font, text, xr, y + 4, 0xFFFFFFFF);
         }
     }
 }

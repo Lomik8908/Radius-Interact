@@ -4,18 +4,18 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,7 +44,7 @@ public class RadiusInteract implements ModInitializer {
 	// public BlockHitResult targetHitResult;
 
 	public KeyMapping registerKeyEvent(KeyMapping key, EndTick endTick) {
-		KeyMapping mapping = KeyMappingHelper.registerKeyMapping(key);
+		KeyMapping mapping = KeyBindingHelper.registerKeyBinding(key);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (mapping.consumeClick()) {
 				if (client.player == null) return;
@@ -108,7 +108,7 @@ public class RadiusInteract implements ModInitializer {
 			center.offset(-radius, -radius, -radius),
 			center.offset(radius, radius, radius)
 		)) {
-			if (isExcluded(pos, player) || !level.isInValidBounds(pos)) continue;
+			if (isExcluded(pos, player) || !level.isInWorldBounds(pos)) continue;
 
 			BlockState state = level.getBlockState(pos);
 			if (state.isAir()) continue;
@@ -147,19 +147,18 @@ public class RadiusInteract implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		config = ConfigManager.loadConfig();
-		var category = KeyMapping.Category.register(id("keys"));
-		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYBOARD, InputConstants.KEY_H, category), client -> {
-			if (client.gui.screen() instanceof ConfigScreen)
-				client.gui.setScreen(null);
+		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYSYM, InputConstants.KEY_H, "key.category.radius-interact.keys"), client -> {
+			if (client.screen instanceof ConfigScreen)
+				client.setScreen(null);
 			else
-				client.gui.setScreen(new ConfigScreen());
+				client.setScreen(new ConfigScreen());
 		});
 
-		registerKeyEvent(new KeyMapping("key.radius-interact.toggle", InputConstants.Type.KEYBOARD, InputConstants.KEY_G, category), client -> {
+		registerKeyEvent(new KeyMapping("key.radius-interact.toggle", InputConstants.Type.KEYSYM, InputConstants.KEY_G, "key.category.radius-interact.keys"), client -> {
 			isBreaking = !isBreaking;
-			client.player.sendOverlayMessage(getTranslation("enabled."+String.valueOf(isBreaking)));
+			client.gui.setOverlayMessage(getTranslation("enabled."+String.valueOf(isBreaking)), false);
 		});
-
+		
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player != null && client.level != null && !client.isPaused() && isBreaking) {
 				Vec3 eyePos = client.player.getEyePosition();
@@ -169,7 +168,7 @@ public class RadiusInteract implements ModInitializer {
 				if (!config.useBlock && target.CanInteract && !client.level.getBlockState(target.BlockPosition).isAir() && (!config.sideAir || client.level.getBlockState(target.BlockPosition.relative(target.Direction)).isAir()) && eyePos.distanceToSqr(target.ClosestPoint) <= reach * reach) {
 					if (canBreak) {
 						client.gameMode.continueDestroyBlock(target.BlockPosition, target.Direction);
-						client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
+						client.player.swing(InteractionHand.MAIN_HAND);
 					}
 				}
 				else {
@@ -178,11 +177,11 @@ public class RadiusInteract implements ModInitializer {
 						if (config.useBlock) {
 							InteractionResult result = client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, target.HitResult);
 							if (result.consumesAction()) 
-								client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
+								client.player.swing(InteractionHand.MAIN_HAND);
 						} else {
 							canBreak = client.gameMode.startDestroyBlock(target.BlockPosition, target.Direction);
 							if (canBreak)
-								client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
+								client.player.swing(InteractionHand.MAIN_HAND);
 						}
 					}
 				}
@@ -196,8 +195,8 @@ public class RadiusInteract implements ModInitializer {
 		});
 	}
 
-	public static Identifier id(String path) {
-		return Identifier.fromNamespaceAndPath(MOD_ID, path);
+	public static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 	public static Component getTranslation(String translation) {
 		return Component.translatable(MOD_ID+"."+translation);
