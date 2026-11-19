@@ -8,8 +8,7 @@
 		"Fluffical"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/project/radius-interact"
 	},
 	"license": "MIT",
 	"icon": "assets/radius-interact/icon.png",
@@ -21,7 +20,7 @@
 	},
 	"depends": {
 		"fabricloader": ">=0.17.0",
-		"minecraft": ">=1.21 <=1.21.1",
+		"minecraft": ">=1.21.2 <=1.21.8",
 		"java": ">=25",
 		"fabric-key-binding-api-v1": "*",
 		"fabric-networking-api-v1": "*",
