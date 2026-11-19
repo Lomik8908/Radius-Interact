@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -146,14 +146,15 @@ public class RadiusInteract implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		config = ConfigManager.loadConfig();
-		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYSYM, InputConstants.KEY_H, "key.category.radius-interact.keys"), client -> {
+		var category = KeyMapping.Category.register(id("keys"));
+		openConfigKey = registerKeyEvent(new KeyMapping("key.radius-interact.config", InputConstants.Type.KEYSYM, InputConstants.KEY_H, category), client -> {
 			if (client.screen instanceof ConfigScreen)
 				client.setScreen(null);
 			else
 				client.setScreen(new ConfigScreen());
 		});
 
-		registerKeyEvent(new KeyMapping("key.radius-interact.toggle", InputConstants.Type.KEYSYM, InputConstants.KEY_G, "key.category.radius-interact.keys"), client -> {
+		registerKeyEvent(new KeyMapping("key.radius-interact.toggle", InputConstants.Type.KEYSYM, InputConstants.KEY_G, category), client -> {
 			isBreaking = !isBreaking;
 			client.gui.setOverlayMessage(getTranslation("enabled."+String.valueOf(isBreaking)), false);
 		});
@@ -194,8 +195,8 @@ public class RadiusInteract implements ModInitializer {
 		});
 	}
 
-	public static ResourceLocation id(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+	public static Identifier id(String path) {
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 	public static Component getTranslation(String translation) {
 		return Component.translatable(MOD_ID+"."+translation);

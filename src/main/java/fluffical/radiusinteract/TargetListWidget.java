@@ -19,8 +19,8 @@ public class TargetListWidget extends ObjectSelectionList<TargetListWidget.Targe
         return entry;
     }
     @Override
-    public boolean removeEntry(TargetEntry entry) {
-        return super.removeEntry(entry);
+    public void removeEntry(TargetEntry entry) {
+        super.removeEntry(entry);
     }
     public void clearEntries() {
         super.clearEntries();
@@ -44,13 +44,13 @@ public class TargetListWidget extends ObjectSelectionList<TargetListWidget.Targe
             return Component.literal(text);
         }
         @Override
-        public void render(GuiGraphics graphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            int xr = x;
+        public void renderContent(GuiGraphics graphics, int i, int j, boolean bl, float f) {
+            int x = getX() + 6;
             if (drawnStack != null) {
-                graphics.renderFakeItem(drawnStack, xr, y);
-                xr += 18;
+                graphics.renderFakeItem(drawnStack, getX() + 2, getY() + 2);
+                x += 14;
             }
-            graphics.drawString(minecraft.font, text, xr, y + 4, 0xFFFFFFFF);
+            graphics.drawString(minecraft.font, text, x, getY() + 6, 0xFFFFFFFF);
         }
     }
 }

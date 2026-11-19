@@ -6,7 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class TargetScreen extends Screen {
@@ -66,7 +66,7 @@ public class TargetScreen extends Screen {
 
     public void updateList() {
         for (String blockid : RadiusInteract.config.targets) {
-            var block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(blockid));
+            var block = BuiltInRegistries.BLOCK.get(Identifier.parse(blockid));
             if (!block.isEmpty()) {
                 TargetEntry entry = blockList.addEntry(blockid, blockid);
                 entry.drawnStack = new ItemStack(block.get().value());
@@ -75,8 +75,8 @@ public class TargetScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
-        super.render(guiGraphics, i, j, f);
-        guiGraphics.drawString(font, title, (width - font.width(title)) /2 , (20 - font.lineHeight) / 2, 0xFFFFFFFF);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
+        super.render(graphics, mouseX, mouseY, a);
+        graphics.drawString(font, title, (width - font.width(title)) /2 , (20 - font.lineHeight) / 2, 0xFFFFFFFF);
     }
 }
